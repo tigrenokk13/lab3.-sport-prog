@@ -1,65 +1,141 @@
 #include <stdio.h>
-#define PI 3.14159
 
-int main() {
-    //Завдання 1:  Користувач вводить довжину в метрах. Виведіть її в сантиметрах і міліметрах.
-    float meters;
-    printf("Task 1: Convert meters to centimeters and millimeters\n");
-    printf("Enter length in meters: ");
-    scanf("%f", &meters);
+char board[3][3];         // Ігрове поле
+char currentPlayer;       // Поточний гравець: 'X' або 'O'
 
-    float centimeters = meters * 100;
-    float millimeters = meters * 1000;
+// Ініціалізація порожнього поля
+void initBoard()
+{
+    for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
+            board[i][j] = ' ';
+}
 
-    printf("Centimeters: %.2f cm\n", centimeters);
-    printf("Millimeters: %.2f mm\n\n", millimeters);
+// Вивід поля на екран
+void printBoard()
+{
+    printf("\n     1   2   3\n");
+    for (int row = 0; row < 3; ++row)
+    {
+        printf("   +---+---+---+\n");
+        printf(" %d |", row + 1);
+        for (int col = 0; col < 3; ++col)
+        {
+            printf(" %c |", board[row][col]);
+        }
+        printf("\n");
+    }
+    printf("   +---+---+---+\n\n");
+}
 
-    //Завдання 2: Напишіть програму, яка зчитує радіус кола та обчислює його площу.Формула: S=π∗r2
+// Перевірка на переможця
+char checkWinner()
+{
+    for (int i = 0; i < 3; ++i)
+    {
+        if (board[i][0] == board[i][1] &&
+            board[i][1] == board[i][2] &&
+            board[i][0] != ' ')
+            return board[i][0];
 
-    float radius;
-    printf("Task 2: Calculate the area of a circle\n");
-    printf("Enter the radius of the circle: ");
-    scanf("%f", &radius);
+        if (board[0][i] == board[1][i] &&
+            board[1][i] == board[2][i] &&
+            board[0][i] != ' ')
+            return board[0][i];
+    }
 
-    float area = PI * radius * radius;
-    printf("Area of the circle: %.2f\n\n", area);
+    if (board[0][0] == board[1][1] &&
+        board[1][1] == board[2][2] &&
+        board[0][0] != ' ')
+        return board[0][0];
 
-    //Завдання 3: Користувач вводить кількість секунд. Виведіть еквівалент у годинах, хвилинах і секундах.13
-    double total_seconds;
-    printf("Task 3: Convert seconds to hours, minutes, and seconds\n");
-    printf("Enter total seconds: ");
-    scanf("%lf", &total_seconds);
+    if (board[0][2] == board[1][1] &&
+        board[1][1] == board[2][0] &&
+        board[0][2] != ' ')
+        return board[0][2];
 
-    double hours = total_seconds / 3600.0;
-    double minutes = (total_seconds / 60.0);
-    double seconds = total_seconds;
+    return ' ';
+}
 
-    printf("Hours (decimal): %.6f\n", hours);
-    printf("Minutes (decimal): %.6f\n", minutes);
-    printf("Seconds: %.f\n\n", seconds);
+// Перевірка на нічию
+int checkDraw()
+{
+    for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
+            if (board[i][j] == ' ')
+                return 0;
+    return 1;
+}
 
+// Хід гравця
+void playerMove()
+{
+    int rowInput, colInput;
+    while (1)
+    {
+        printf("Гравець %c, введiть рядок i стовпець (через пробiл): ", currentPlayer);
+        if (scanf("%d %d", &rowInput, &colInput) != 2)
+        {
+            printf("Невiрний ввiд. Спробуйте ще раз.\n");
+            while (getchar() != '\n');
+            continue;
+        }
 
-    //Завдання 4: Напишіть програму, яка зчитує ціле число та перевіряє, чи є воно парним.
-    int number;
-    printf("Task 4: Check if a number is even\n");
-    printf("Enter an integer: ");
-    scanf("%d", &number);
+        if (rowInput < 1 || rowInput > 3 || colInput < 1 || colInput > 3)
+        {
+            printf("Координати мають бути в межах вiд 1 до 3.\n");
+            continue;
+        }
 
-    printf("%s\n\n", (number % 2 == 0) ? "The number is even." : "The number is odd.");
+        if (board[rowInput - 1][colInput - 1] != ' ')
+        {
+            printf("Клiтинка вже зайнята. Спробуйте iншу.\n");
+            continue;
+        }
 
+        board[rowInput - 1][colInput - 1] = currentPlayer;
+        break;
+    }
+}
 
-    //Завдання 5: Користувач вводить малу літеру англійського алфавіту. Перетворіть її на велику.
-    char letter;
-    printf("Task 5: Convert lowercase letter to uppercase\n");
-    printf("Enter a lowercase letter: ");
-    scanf(" %c", &letter); 
+// Зміна гравця
+void switchPlayer()
+{
+    currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+}
 
-    if (letter >= 'a' && letter <= 'z') {
-        char upper = letter - 32;
-        printf("Uppercase letter: %c\n", upper);
-    } else {
-        printf("That is not a lowercase English letter.\n");
+// Головна функція
+int main()
+{
+    setlocale(LC_ALL, "ukr");
+    currentPlayer = 'X';
+    initBoard();
+
+    printf("Вiтаємо у грi \"Хрестики-нулики\"!\n");
+
+    while (1)
+    {
+        printBoard();
+        playerMove();
+
+        char winner = checkWinner();
+        if (winner != ' ')
+        {
+            printBoard();
+            printf("Гравець %c виграв! Вiтаємо!\n", winner);
+            break;
+        }
+
+        if (checkDraw())
+        {
+            printBoard();
+            printf("Нiчия. Гарна гра!\n");
+            break;
+        }
+
+        switchPlayer();
     }
 
     return 0;
 }
+
